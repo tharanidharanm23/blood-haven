@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Award, Search, CheckCircle2 } from "lucide-react";
 import { BloodTag } from "@/components/UrgencyBadge";
-import { certifyDonation, searchDonorsForCertify } from "@/lib/server/api";
+import { certifyDonation, searchDonorsForCertify } from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
 import type { Donor, District } from "@/lib/mock-data";
 

@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
   PieChart,
   Pie,
@@ -12,7 +12,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Check, ShieldCheck, Trash2, Users, Activity, CheckCircle2, AlertTriangle, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { StatCard } from "@/components/StatCard";
 import { UrgencyBadge, BloodTag } from "@/components/UrgencyBadge";
@@ -23,8 +23,9 @@ import {
   adminSetUserApproval,
   adminVerifyHospital,
   getAdminData,
-} from "@/lib/server/api";
+} from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
+import { bloodDistribution as seedBloodDistribution, monthlyRequests as seedMonthlyRequests } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/_app/dashboard")({
   head: () => ({
@@ -33,7 +34,6 @@ export const Route = createFileRoute("/_app/dashboard")({
       { name: "description", content: "Real-time overview of donors, requests, and inventory." },
     ],
   }),
-  loader: () => getAdminData(),
   component: DashboardPage,
 });
 
@@ -49,14 +49,33 @@ const PALETTE = [
 ];
 
 function DashboardPage() {
-  const router = useRouter();
   const session = getSessionUser();
-  const loaded = Route.useLoaderData();
-  const [users, setUsers] = useState(loaded.users);
-  const [requests, setRequests] = useState(loaded.requests);
-  const [donors, setDonors] = useState(loaded.donors);
-  const [reports, setReports] = useState(loaded.reports ?? []);
-  const { inventory, monthlyRequests, bloodDistribution } = loaded;
+  const [users, setUsers] = useState<any[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [donors, setDonors] = useState<any[]>([]);
+  const [reports, setReports] = useState<any[]>([]);
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [monthlyRequests, setMonthlyRequests] = useState(seedMonthlyRequests);
+  const [bloodDistribution, setBloodDistribution] = useState(seedBloodDistribution);
+
+  useEffect(() => {
+    let active = true;
+    getAdminData()
+      .then((data) => {
+        if (!active) return;
+        setUsers(data.users);
+        setRequests(data.requests);
+        setDonors(data.donors);
+        setReports(data.reports ?? []);
+        setInventory(data.inventory ?? []);
+        setMonthlyRequests(data.monthlyRequests ?? seedMonthlyRequests);
+        setBloodDistribution(data.bloodDistribution ?? seedBloodDistribution);
+      })
+      .catch(() => toast.error("Could not load admin data"));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const lowStock = inventory.filter((i) => i.units / i.capacity < 0.25);
   const activeRequests = requests.filter((r) => r.status !== "Fulfilled");
@@ -94,7 +113,6 @@ function DashboardPage() {
       setUsers((prev) => prev.filter((u) => u.phone !== phoneOrEmail && u.email !== phoneOrEmail));
       setDonors((prev) => prev.filter((d) => d.phone !== phoneOrEmail && d.email !== phoneOrEmail));
       toast.success("User removed");
-      router.invalidate();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Remove failed");
     }
@@ -105,7 +123,6 @@ function DashboardPage() {
       await adminRemoveRequest({ data: { adminEmail, requestId } });
       setRequests((prev) => prev.filter((r) => r.id !== requestId));
       toast.success("Request removed");
-      router.invalidate();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Remove failed");
     }
@@ -129,7 +146,7 @@ function DashboardPage() {
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border">
-        <StatCard label="Total Donors" value={donors.length} delta="MongoDB records" icon={Users} />
+        <StatCard label="Total Donors" value={donors.length} delta="Active profiles" icon={Users} />
         <StatCard label="Active Requests" value={activeRequests.length} delta={`${criticalRequests.length} critical`} icon={Activity} tone="primary" />
         <StatCard label="Fulfilled (30d)" value={fulfilledRequests.length} delta="Stored requests" icon={CheckCircle2} />
         <StatCard label="Low Stock Alerts" value={lowStock.length} delta="Action required" icon={AlertTriangle} />

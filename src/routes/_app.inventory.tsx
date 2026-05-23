@@ -1,10 +1,10 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Plus, AlertTriangle, X } from "lucide-react";
 import { BLOOD_GROUPS, type BloodGroup, type InventoryItem } from "@/lib/mock-data";
 import { BloodTag } from "@/components/UrgencyBadge";
-import { addInventoryUnits, getInventoryData } from "@/lib/server/api";
+import { addInventoryUnits, getInventoryData } from "@/lib/client-api";
 
 export const Route = createFileRoute("/_app/inventory")({
   head: () => ({
@@ -13,20 +13,29 @@ export const Route = createFileRoute("/_app/inventory")({
       { name: "description", content: "Track blood unit inventory, capacity, and expiry." },
     ],
   }),
-  loader: () => getInventoryData(),
   component: InventoryPage,
 });
 
 function InventoryPage() {
-  const router = useRouter();
-  const { inventory: loadedItems } = Route.useLoaderData();
-  const [items, setItems] = useState<InventoryItem[]>(loadedItems);
+  const [items, setItems] = useState<InventoryItem[]>([]);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getInventoryData()
+      .then((data) => {
+        if (!active) return;
+        setItems(data.inventory);
+      })
+      .catch(() => toast.error("Could not load inventory"));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const addUnits = async (group: BloodGroup, units: number, expiry: string) => {
     const result = await addInventoryUnits({ data: { bloodGroup: group, units, expiry } });
     setItems(result.inventory);
-    router.invalidate();
     toast.success(`+${units} units of ${group} added`);
   };
 

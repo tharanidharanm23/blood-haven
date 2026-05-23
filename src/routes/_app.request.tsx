@@ -10,7 +10,7 @@ import {
   type District,
   type Urgency,
 } from "@/lib/mock-data";
-import { createBloodRequest } from "@/lib/server/api";
+import { createBloodRequest } from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
 
 export const Route = createFileRoute("/_app/request")({

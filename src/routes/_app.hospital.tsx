@@ -3,10 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Bell, CheckCircle2, Siren, Users, MapPin, Award, Link2, Trash2 } from "lucide-react";
 import type { InventoryItem, Donor, BloodRequest } from "@/lib/mock-data";
 import { BloodTag, UrgencyBadge } from "@/components/UrgencyBadge";
-import { getHospitalData, getMyRequests, deleteBloodRequest, markRequestFulfilled } from "@/lib/server/api";
+import { getHospitalData, getMyRequests, deleteBloodRequest, markRequestFulfilled } from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
 import { toast } from "sonner";
-import { useRouter } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/hospital")({
   head: () => ({
@@ -15,22 +14,33 @@ export const Route = createFileRoute("/_app/hospital")({
       { name: "description", content: "Hospital operations overview." },
     ],
   }),
-  loader: () => getHospitalData(),
   component: HospitalDashboardPage,
 });
 
 function HospitalDashboardPage() {
-  const router = useRouter();
-  const loaded = Route.useLoaderData();
   const session = getSessionUser();
-  const [requests, setRequests] = useState(loaded.requests);
+  const [requests, setRequests] = useState<BloodRequest[]>([]);
   const [myRequests, setMyRequests] = useState<BloodRequest[]>([]);
-  const inventory = loaded.inventory;
-  const donors = loaded.donors;
-  const notifications = loaded.notifications;
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [donors, setDonors] = useState<Donor[]>([]);
 
   const phone = session?.phone;
   const email = session?.email;
+
+  useEffect(() => {
+    let active = true;
+    getHospitalData()
+      .then((data) => {
+        if (!active) return;
+        setRequests(data.requests);
+        setInventory(data.inventory);
+        setDonors(data.donors);
+      })
+      .catch(() => toast.error("Could not load hospital data"));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!phone && !email) return;
@@ -60,7 +70,6 @@ function HospitalDashboardPage() {
       setRequests((prev) => prev.filter((r) => r.id !== requestId));
       setMyRequests((prev) => prev.filter((r) => r.id !== requestId));
       toast.success("Request deleted");
-      router.invalidate();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not delete request");
     }
@@ -73,7 +82,6 @@ function HospitalDashboardPage() {
       setRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, status: "Fulfilled" } : r)));
       setMyRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, status: "Fulfilled" } : r)));
       toast.success("Marked as fulfilled");
-      router.invalidate();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not update request");
     }

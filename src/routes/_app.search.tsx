@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Search, MapPin, Phone, MessageCircle, AlertTriangle } from "lucide-react";
 import { BloodTag } from "@/components/UrgencyBadge";
 import { ReportDialog } from "@/components/ReportDialog";
-import { getDonorsData } from "@/lib/server/api";
+import { getDonorsData } from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
+import type { Donor } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/_app/search")({
   head: () => ({
@@ -14,19 +15,31 @@ export const Route = createFileRoute("/_app/search")({
       { name: "description", content: "Find available donors within a configurable radius." },
     ],
   }),
-  loader: () => getDonorsData(),
   component: SearchPage,
 });
 
 const LEVELS = ["Local", "District"];
 
 function SearchPage() {
-  const { donors } = Route.useLoaderData();
+  const [donors, setDonors] = useState<Donor[]>([]);
   const session = getSessionUser();
   const [q, setQ] = useState("");
   const [level, setLevel] = useState<"Local" | "District">("District");
   const [loading, setLoading] = useState(false);
   const [reportTarget, setReportTarget] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getDonorsData()
+      .then((data) => {
+        if (!active) return;
+        setDonors(data.donors);
+      })
+      .catch(() => toast.error("Could not load donors"));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const results = useMemo(() => {
     return donors

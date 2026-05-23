@@ -11,7 +11,7 @@ import {
   type District,
   type Role,
 } from "@/lib/mock-data";
-import { signupUser } from "@/lib/server/api";
+import { signupUser } from "@/lib/client-api";
 import { saveSessionUser } from "@/lib/session";
 
 export const Route = createFileRoute("/signup")({

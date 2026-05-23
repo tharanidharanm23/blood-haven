@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Building2, Phone, MessageCircle, MapPin, CheckCircle2 } from "lucide-react";
-import { getNearbyHospitals } from "@/lib/server/api";
+import { getNearbyHospitals } from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
 
 

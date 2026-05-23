@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Link2, Phone, MessageCircle, ArrowRight, Send } from "lucide-react";
 import { BloodTag } from "@/components/UrgencyBadge";
-import { getHospitalChainData, transferBloodBetweenHospitals } from "@/lib/server/api";
+import { getHospitalChainData, transferBloodBetweenHospitals } from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
 import type { BloodGroup, InventoryItem } from "@/lib/mock-data";
 import { BLOOD_GROUPS } from "@/lib/mock-data";

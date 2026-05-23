@@ -12,7 +12,7 @@ import {
   getMyRequests,
   deleteBloodRequest,
   markRequestFulfilled,
-} from "@/lib/server/api";
+} from "@/lib/client-api";
 import { getSessionUser, saveSessionUser } from "@/lib/session";
 import {
   BLOOD_GROUPS,
@@ -31,38 +31,42 @@ export const Route = createFileRoute("/_app/donor")({
       { name: "description", content: "Manage your donor profile and view nearby requests." },
     ],
   }),
-  loader: async () => {
-    const session = getSessionUser();
-    return getDonorProfileData({ data: { phone: session?.phone } });
-  },
   component: DonorPage,
 });
 
 function DonorPage() {
-  const loaderData = Route.useLoaderData() as any;
-  const [profile, setProfile] = useState(loaderData);
-  const [available, setAvailable] = useState(loaderData?.me?.available ?? true);
+  const [profile, setProfile] = useState<Awaited<ReturnType<typeof getDonorProfileByPhone>> | null>(null);
+  const [available, setAvailable] = useState(true);
   const [editorOpen, setEditorOpen] = useState(false);
   const [myRequests, setMyRequests] = useState<BloodRequest[]>([]);
-  const { me, history, nearby, nearbyDonors = [], user } = profile || {};
   const [reportTarget, setReportTarget] = useState<null | { role: "donor" | "hospital"; id: string }>(null);
 
-  const phone = getSessionUser()?.phone;
-  const email = getSessionUser()?.email;
-
   useEffect(() => {
+    let active = true;
     const session = getSessionUser();
-    if (!session?.phone) return;
-
-    getDonorProfileByPhone({ data: { phone: session.phone } })
+    getDonorProfileData({ data: { phone: session?.phone } })
       .then((nextProfile) => {
+        if (!active) return;
         setProfile(nextProfile);
         setAvailable(nextProfile.me.available);
       })
-      .catch(() => {
-        toast.error("Could not load your MongoDB donor profile");
-      });
+      .catch(() => toast.error("Could not load your donor profile"));
+    return () => {
+      active = false;
+    };
   }, []);
+
+  if (!profile) {
+    return (
+      <div className="hud-panel p-8 text-center text-muted-foreground font-mono text-sm">
+        Loading donor profile...
+      </div>
+    );
+  }
+
+  const { me, history, nearby, nearbyDonors = [], user } = profile;
+  const phone = getSessionUser()?.phone;
+  const email = getSessionUser()?.email;
 
   useEffect(() => {
     if (!phone && !email) return;
@@ -450,7 +454,7 @@ function ProfileEditor({
       await updateDonorProfile({ data: { phone, ...form } });
       const nextProfile = await getDonorProfileByPhone({ data: { phone } });
       onSaved(nextProfile);
-      toast.success("Profile updated in MongoDB");
+      toast.success("Profile updated");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not update profile");
     } finally {
@@ -464,7 +468,7 @@ function ProfileEditor({
         <div className="flex items-center justify-between border-b border-border p-5">
           <div>
             <div className="font-mono text-[10px] tracking-widest uppercase text-primary">
-              // MongoDB Profile
+              // Local Profile
             </div>
             <h2 className="text-lg font-bold">Update Donor Profile</h2>
           </div>

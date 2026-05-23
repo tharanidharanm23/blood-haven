@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import type { Role } from "@/lib/mock-data";
-import { createReport } from "@/lib/server/api";
+import { createReport } from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
 
 export function ReportDialog({

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { MapPin, Phone, MessageCircle, CheckCircle2, Trash2 } from "lucide-react";
 import { BloodTag, UrgencyBadge } from "@/components/UrgencyBadge";
-import { getNearbyRequestsForHospital, getMyRequests, deleteBloodRequest, markRequestFulfilled } from "@/lib/server/api";
+import { getNearbyRequestsForHospital, getMyRequests, deleteBloodRequest, markRequestFulfilled } from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
 import type { BloodRequest } from "@/lib/mock-data";
 

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { PhoneInput } from "@/components/PhoneInput";
 import type { Role } from "@/lib/mock-data";
-import { loginUser } from "@/lib/server/api";
+import { loginUser } from "@/lib/client-api";
 import { saveSessionUser } from "@/lib/session";
 
 export const Route = createFileRoute("/login")({

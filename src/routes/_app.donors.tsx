@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Star, Siren, Phone, MessageCircle, AlertTriangle } from "lucide-react";
 import { ReportDialog } from "@/components/ReportDialog";
 import type { Donor } from "@/lib/mock-data";
 import { BloodTag, UrgencyBadge } from "@/components/UrgencyBadge";
-import { getDonorsData } from "@/lib/server/api";
+import { getDonorsData } from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
 
 export const Route = createFileRoute("/_app/donors")({
@@ -15,16 +15,30 @@ export const Route = createFileRoute("/_app/donors")({
       { name: "description", content: "Smart-matched donors for active blood requests." },
     ],
   }),
-  loader: () => getDonorsData(),
   component: DonorsPage,
 });
 
 type Sort = "location" | "eligible";
 
 function DonorsPage() {
-  const { donors, requests } = Route.useLoaderData();
+  const [donors, setDonors] = useState<Donor[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
   const session = getSessionUser();
   const [sort, setSort] = useState<Sort>("location");
+
+  useEffect(() => {
+    let active = true;
+    getDonorsData()
+      .then((data) => {
+        if (!active) return;
+        setDonors(data.donors);
+        setRequests(data.requests ?? []);
+      })
+      .catch(() => toast.error("Could not load donors"));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const sorted = useMemo(() => {
     const list = donors

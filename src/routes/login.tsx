@@ -93,7 +93,7 @@ function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="bg-primary text-primary-foreground py-3 font-mono text-xs tracking-widest uppercase font-bold hover:bg-foreground transition-colors disabled:opacity-50"
+          className="bg-primary text-primary-foreground py-3 font-mono text-xs tracking-widest uppercase font-bold hover:bg-foreground transition-colors disabled:opacity-50 pointer-events-auto cursor-pointer"
         >
           {loading ? "Authenticating..." : "Initiate Session"}
         </button>
@@ -121,7 +121,7 @@ export function AuthLayout({
     <div className="min-h-dvh grid lg:grid-cols-2">
       {/* Left side mission panel */}
       <div className="hidden lg:flex flex-col justify-between p-12 bg-foreground text-background relative overflow-hidden">
-        <div className="absolute inset-0 hud-grid opacity-10" />
+        <div className="absolute inset-0 hud-grid opacity-10 pointer-events-none" />
         <Logo className="relative" />
         <div className="relative">
           <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-3">
@@ -142,7 +142,7 @@ export function AuthLayout({
         </div>
       </div>
       {/* Right form */}
-      <div className="flex flex-col justify-center p-6 sm:p-12 bg-background">
+      <div className="flex flex-col justify-center p-6 sm:p-12 bg-background relative z-10">
         <div className="lg:hidden mb-8">
           <Logo />
         </div>
@@ -155,20 +155,6 @@ export function AuthLayout({
           {children}
         </div>
       </div>
-      <style>{`
-        .hud-input {
-          width: 100%;
-          padding: 0.75rem 0.875rem;
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          font-family: var(--font-mono);
-          font-size: 0.875rem;
-          color: var(--color-foreground);
-          outline: none;
-          transition: border-color 0.15s;
-        }
-        .hud-input:focus { border-color: var(--color-primary); }
-      `}</style>
     </div>
   );
 }
@@ -199,7 +185,7 @@ export function RoleTabs({
             key={r.id}
             type="button"
             onClick={() => onChange(r.id)}
-            className={`py-3 font-mono text-xs uppercase tracking-widest font-bold transition-colors ${
+            className={`py-3 font-mono text-xs uppercase tracking-widest font-bold transition-colors pointer-events-auto cursor-pointer ${
               value === r.id
                 ? "bg-primary text-primary-foreground"
                 : "bg-surface hover:bg-muted text-foreground"

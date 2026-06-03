@@ -1,14 +1,12 @@
-import "./styles.css";
+import "./tailwind.css";
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { RouterProvider } from "@tanstack/react-router";
+import { AppProviders } from "@/app-providers";
+import { getRouter } from "./router";
 
-import { routeTree } from "./routeTree.gen";
-
-const router = createRouter({
-  routeTree,
-});
+const router = getRouter();
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -18,6 +16,8 @@ declare module "@tanstack/react-router" {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>
+    <AppProviders>
+      <RouterProvider router={router} />
+    </AppProviders>
+  </React.StrictMode>,
 );

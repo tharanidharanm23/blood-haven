@@ -7,9 +7,7 @@ export function Logo({ className = "" }: { className?: string }) {
       <div className="size-4 bg-primary flex items-center justify-center group-hover:rotate-90 transition-transform">
         <div className="size-1.5 bg-primary-foreground" />
       </div>
-      <span className="font-mono text-sm tracking-[0.2em] font-bold uppercase">
-        BLOOD_HAVEN
-      </span>
+      <span className="font-mono text-sm tracking-[0.2em] font-bold uppercase">BLOOD_HAVEN</span>
     </Link>
   );
 }

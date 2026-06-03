@@ -5,7 +5,6 @@ import { Building2, Phone, MessageCircle, MapPin, CheckCircle2 } from "lucide-re
 import { getNearbyHospitals } from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
 
-
 export const Route = createFileRoute("/_app/hospitals")({
   head: () => ({
     meta: [
@@ -39,11 +38,14 @@ function NearbyHospitalsPage() {
   const email = session?.email;
 
   useEffect(() => {
-    if (!district) { setLoading(false); return; }
+    if (!district) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    getNearbyHospitals({ data: { district: district as any, constituency, email } })
+    getNearbyHospitals({ data: { district, constituency, email } })
       .then((res) => {
-        const mapped = (res.hospitals as any[]).filter(h => {
+        const mapped = res.hospitals.filter((h) => {
           if (level === "Local") return h.matchLevel === 1;
           return h.matchLevel <= 2;
         });
@@ -63,8 +65,12 @@ function NearbyHospitalsPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">// Hospital Radar</div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight uppercase">Nearby Hospitals</h1>
+          <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">
+            // Hospital Radar
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight uppercase">
+            Nearby Hospitals
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Find hospitals in your vicinity and contact them for blood requests.
           </p>
@@ -85,11 +91,15 @@ function NearbyHospitalsPage() {
       </header>
 
       {loading ? (
-        <div className="hud-panel p-12 text-center text-muted-foreground font-mono text-sm">Scanning for hospitals...</div>
+        <div className="hud-panel p-12 text-center text-muted-foreground font-mono text-sm">
+          Scanning for hospitals...
+        </div>
       ) : hospitals.length === 0 ? (
         <div className="hud-panel p-12 text-center">
           <Building2 className="size-10 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">No hospitals found in your {level === "Local" ? "constituency" : "district"}.</p>
+          <p className="text-muted-foreground">
+            No hospitals found in your {level === "Local" ? "constituency" : "district"}.
+          </p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border border border-border">
@@ -114,12 +124,12 @@ function NearbyHospitalsPage() {
                 )}
               </div>
 
-              {h.address && (
-                <p className="text-xs text-muted-foreground">{h.address}</p>
-              )}
+              {h.address && <p className="text-xs text-muted-foreground">{h.address}</p>}
 
               <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border pt-3">
-                <span className="font-mono">{h.district} · {h.constituency}</span>
+                <span className="font-mono">
+                  {h.district} · {h.constituency}
+                </span>
                 {h.phone && <span className="font-mono">{h.phone}</span>}
               </div>
 
@@ -127,16 +137,29 @@ function NearbyHospitalsPage() {
                 <a
                   href={h.phone ? `tel:${h.phone}` : undefined}
                   className="flex-1 inline-flex items-center justify-center gap-2 bg-foreground text-background py-2.5 font-mono text-[10px] tracking-widest uppercase font-bold hover:bg-primary transition-colors"
-                  onClick={(e) => { if (!h.phone) { e.preventDefault(); toast.error("No phone number available"); } }}
+                  onClick={(e) => {
+                    if (!h.phone) {
+                      e.preventDefault();
+                      toast.error("No phone number available");
+                    }
+                  }}
                 >
                   <Phone className="size-3.5" /> Call
                 </a>
                 <a
-                  href={whatsappLink(h.phone, `Hi ${h.name}, I need blood. Can you help? My blood group is ${session?.bloodGroup ?? "unknown"}.`)}
+                  href={whatsappLink(
+                    h.phone,
+                    `Hi ${h.name}, I need blood. Can you help? My blood group is ${session?.bloodGroup ?? "unknown"}.`,
+                  )}
                   target="_blank"
                   rel="noreferrer"
                   className="flex-1 inline-flex items-center justify-center gap-2 border border-border py-2.5 font-mono text-[10px] tracking-widest uppercase font-bold hover:bg-muted transition-colors"
-                  onClick={(e) => { if (!h.phone) { e.preventDefault(); toast.error("No phone number available"); } }}
+                  onClick={(e) => {
+                    if (!h.phone) {
+                      e.preventDefault();
+                      toast.error("No phone number available");
+                    }
+                  }}
                 >
                   <MessageCircle className="size-3.5" /> WhatsApp
                 </a>

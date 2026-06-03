@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Project base and utility layers moved here so Tailwind directives run first */
+@layer base {
+	* {
+		border-color: var(--color-border);
+	}
+
+	html, body {
+		background-color: var(--color-background);
+		color: var(--color-foreground);
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+	}
+
+	.font-mono { font-family: var(--font-mono); }
+}
+
+@layer utilities {
+	.hud-grid {
+		background-image:
+			linear-gradient(to right, var(--color-grid) 1px, transparent 1px),
+			linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px);
+		background-size: 48px 48px;
+	}
+	.hud-panel {
+		background-color: var(--color-surface);
+		border: 1px solid var(--color-border);
+	}
+	.hud-shadow { box-shadow: var(--shadow-hud); }
+	.hud-shadow-sm { box-shadow: var(--shadow-hud-sm); }
+	.text-balance { text-wrap: balance; }
+	.text-pretty { text-wrap: pretty; }
+	.hud-input,
+	input.hud-input,
+	select.hud-input,
+	textarea.hud-input {
+		width: 100%;
+		padding: 0.75rem 0.875rem;
+		background-color: var(--color-surface);
+		border: 1px solid var(--color-border);
+		font-family: var(--font-mono);
+		font-size: 0.875rem;
+		color: var(--color-foreground);
+		outline: none;
+		transition: border-color 0.15s;
+		pointer-events: auto;
+		cursor: pointer;
+	}
+	.hud-input:focus,
+	input.hud-input:focus,
+	select.hud-input:focus,
+	textarea.hud-input:focus {
+		border-color: var(--color-primary);
+	}
+}

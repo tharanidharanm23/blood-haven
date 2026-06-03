@@ -11,7 +11,10 @@ export const Route = createFileRoute("/_app/certify")({
   head: () => ({
     meta: [
       { title: "Certify Donors — Donor Land" },
-      { name: "description", content: "Search and certify blood donors to increase their lifetime contributions." },
+      {
+        name: "description",
+        content: "Search and certify blood donors to increase their lifetime contributions.",
+      },
     ],
   }),
   component: CertifyPage,
@@ -41,7 +44,10 @@ function CertifyPage() {
   };
 
   const handleCertify = async (donor: Donor) => {
-    if (!session?.email) { toast.error("Hospital session missing"); return; }
+    if (!session?.email) {
+      toast.error("Hospital session missing");
+      return;
+    }
     setCertifying(donor.id);
     try {
       const result = await certifyDonation({
@@ -54,7 +60,15 @@ function CertifyPage() {
       });
       setCertified((prev) => new Set(prev).add(donor.id));
       setResults((prev) =>
-        prev.map((d) => d.id === donor.id ? { ...d, lifetimeDonations: result.lifetimeDonations, lastDonation: new Date().toISOString().slice(0, 10) } : d)
+        prev.map((d) =>
+          d.id === donor.id
+            ? {
+                ...d,
+                lifetimeDonations: result.lifetimeDonations,
+                lastDonation: new Date().toISOString().slice(0, 10),
+              }
+            : d,
+        ),
       );
       toast.success(`${donor.name} certified! Lifetime: ${result.lifetimeDonations}`);
     } catch (error) {
@@ -67,7 +81,9 @@ function CertifyPage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">// Certification</div>
+        <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">
+          // Certification
+        </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight uppercase">Certify Donors</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Search for a donor by name, phone, or ID and certify their blood donation.
@@ -102,7 +118,10 @@ function CertifyPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="size-10 bg-muted text-foreground flex items-center justify-center font-mono text-sm font-bold">
-                      {donor.name.split(" ").map((n) => n[0]).join("")}
+                      {donor.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </div>
                     <div>
                       <div className="font-mono text-[10px] text-muted-foreground">{donor.id}</div>
@@ -113,17 +132,27 @@ function CertifyPage() {
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center border-t border-b border-border py-3">
                   <div>
-                    <div className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground mb-1">Lifetime</div>
-                    <div className="font-mono text-lg font-bold">{donor.lifetimeDonations ?? 0}</div>
+                    <div className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground mb-1">
+                      Lifetime
+                    </div>
+                    <div className="font-mono text-lg font-bold">
+                      {donor.lifetimeDonations ?? 0}
+                    </div>
                   </div>
                   <div>
-                    <div className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground mb-1">Status</div>
-                    <div className={`font-mono text-xs font-bold ${donor.available ? "text-success" : "text-muted-foreground"}`}>
+                    <div className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground mb-1">
+                      Status
+                    </div>
+                    <div
+                      className={`font-mono text-xs font-bold ${donor.available ? "text-success" : "text-muted-foreground"}`}
+                    >
                       {donor.available ? "READY" : "OFF"}
                     </div>
                   </div>
                   <div>
-                    <div className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground mb-1">Last</div>
+                    <div className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground mb-1">
+                      Last
+                    </div>
                     <div className="font-mono text-xs">{donor.lastDonation?.slice(5) ?? "-"}</div>
                   </div>
                 </div>
@@ -137,11 +166,15 @@ function CertifyPage() {
                   }`}
                 >
                   {isCertified ? (
-                    <><CheckCircle2 className="size-3.5" /> Certified</>
+                    <>
+                      <CheckCircle2 className="size-3.5" /> Certified
+                    </>
                   ) : certifying === donor.id ? (
                     "Certifying..."
                   ) : (
-                    <><Award className="size-3.5" /> Certify +1</>
+                    <>
+                      <Award className="size-3.5" /> Certify +1
+                    </>
                   )}
                 </button>
               </div>

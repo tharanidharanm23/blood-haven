@@ -30,6 +30,9 @@ type HospitalEntry = {
 
 function HospitalChainPage() {
   const session = getSessionUser();
+  const district = session?.district;
+  const constituency = session?.constituency;
+  const email = session?.email;
   const [hospitals, setHospitals] = useState<HospitalEntry[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,14 +41,24 @@ function HospitalChainPage() {
   const [transferring, setTransferring] = useState(false);
 
   useEffect(() => {
-    getHospitalChainData({ data: { district: session?.district as any, constituency: session?.constituency, email: session?.email } })
+    if (!district) {
+      setLoading(false);
+      return;
+    }
+    getHospitalChainData({
+      data: {
+        district,
+        constituency,
+        email,
+      },
+    })
       .then((res) => {
         setHospitals(res.hospitals);
         setInventory(res.inventory);
       })
       .catch(() => toast.error("Could not load hospital chain"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [district, constituency, email]);
 
   const whatsappLink = (phone: string | undefined, text: string) => {
     if (!phone) return undefined;
@@ -61,12 +74,15 @@ function HospitalChainPage() {
         data: {
           fromHospitalEmail: session.email,
           toHospitalName: transferTarget.name,
+          toHospitalEmail: transferTarget.email,
           bloodGroup: transferForm.bloodGroup,
           units: transferForm.units,
         },
       });
       setInventory(res.inventory);
-      toast.success(`Transferred ${transferForm.units}U of ${transferForm.bloodGroup} to ${transferTarget.name}`);
+      toast.success(
+        `Transferred ${transferForm.units}U of ${transferForm.bloodGroup} to ${transferTarget.name}`,
+      );
       setTransferTarget(null);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Transfer failed");
@@ -78,7 +94,9 @@ function HospitalChainPage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">// Network</div>
+        <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">
+          // Network
+        </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight uppercase">Hospital Chain</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Transfer blood units to nearby hospitals or request from them.
@@ -88,7 +106,9 @@ function HospitalChainPage() {
       {/* Current inventory summary */}
       <div className="hud-panel">
         <div className="p-4 border-b border-border">
-          <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground">Your Inventory</div>
+          <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground">
+            Your Inventory
+          </div>
         </div>
         <div className="grid grid-cols-4 sm:grid-cols-8 gap-px bg-border">
           {inventory.map((item) => (
@@ -101,7 +121,9 @@ function HospitalChainPage() {
       </div>
 
       {loading ? (
-        <div className="hud-panel p-12 text-center text-muted-foreground font-mono text-sm">Loading hospital network...</div>
+        <div className="hud-panel p-12 text-center text-muted-foreground font-mono text-sm">
+          Loading hospital network...
+        </div>
       ) : hospitals.length === 0 ? (
         <div className="hud-panel p-12 text-center">
           <Link2 className="size-10 text-muted-foreground mx-auto mb-4" />
@@ -114,12 +136,18 @@ function HospitalChainPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-bold">{h.name}</h3>
-                  <div className="font-mono text-[11px] text-muted-foreground">{h.district} · {h.constituency}</div>
-                  {h.address && <div className="text-xs text-muted-foreground mt-1">{h.address}</div>}
+                  <div className="font-mono text-[11px] text-muted-foreground">
+                    {h.district} · {h.constituency}
+                  </div>
+                  {h.address && (
+                    <div className="text-xs text-muted-foreground mt-1">{h.address}</div>
+                  )}
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   {h.verified && (
-                    <span className="font-mono text-[9px] tracking-widest uppercase text-success border border-success/30 bg-success/10 px-1.5 py-0.5">Verified</span>
+                    <span className="font-mono text-[9px] tracking-widest uppercase text-success border border-success/30 bg-success/10 px-1.5 py-0.5">
+                      Verified
+                    </span>
                   )}
                 </div>
               </div>
@@ -127,16 +155,29 @@ function HospitalChainPage() {
                 <a
                   href={h.phone ? `tel:${h.phone}` : undefined}
                   className="flex-1 inline-flex items-center justify-center gap-1.5 border border-border py-2 font-mono text-[10px] tracking-widest uppercase font-bold hover:bg-muted transition-colors"
-                  onClick={(e) => { if (!h.phone) { e.preventDefault(); toast.error("No phone"); } }}
+                  onClick={(e) => {
+                    if (!h.phone) {
+                      e.preventDefault();
+                      toast.error("No phone");
+                    }
+                  }}
                 >
                   <Phone className="size-3" /> Call
                 </a>
                 <a
-                  href={whatsappLink(h.phone, `Hi ${h.name}, this is ${session?.name ?? "Hospital"}. We'd like to coordinate blood supply.`)}
+                  href={whatsappLink(
+                    h.phone,
+                    `Hi ${h.name}, this is ${session?.name ?? "Hospital"}. We'd like to coordinate blood supply.`,
+                  )}
                   target="_blank"
                   rel="noreferrer"
                   className="flex-1 inline-flex items-center justify-center gap-1.5 border border-border py-2 font-mono text-[10px] tracking-widest uppercase font-bold hover:bg-muted transition-colors"
-                  onClick={(e) => { if (!h.phone) { e.preventDefault(); toast.error("No phone"); } }}
+                  onClick={(e) => {
+                    if (!h.phone) {
+                      e.preventDefault();
+                      toast.error("No phone");
+                    }
+                  }}
                 >
                   <MessageCircle className="size-3" /> Chat
                 </a>
@@ -154,13 +195,19 @@ function HospitalChainPage() {
 
       {/* Transfer modal */}
       {transferTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/40 animate-fade-in" onClick={() => setTransferTarget(null)}>
-          <div className="bg-surface border border-border w-full max-w-md hud-shadow animate-scale-in" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/40 animate-fade-in"
+          onClick={() => setTransferTarget(null)}
+        >
+          <div
+            className="bg-surface border border-border w-full max-w-md hud-shadow animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-5 border-b border-border">
-              <div className="font-mono text-[10px] tracking-widest uppercase text-primary">// Blood Transfer</div>
-              <h2 className="text-lg font-bold">
-                Give to {transferTarget.name}
-              </h2>
+              <div className="font-mono text-[10px] tracking-widest uppercase text-primary">
+                // Blood Transfer
+              </div>
+              <h2 className="text-lg font-bold">Give to {transferTarget.name}</h2>
             </div>
             <div className="p-5 flex flex-col gap-4">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -169,32 +216,49 @@ function HospitalChainPage() {
                 <span className="font-bold text-foreground">{transferTarget.name}</span>
               </div>
               <label>
-                <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-2">Blood Group</div>
+                <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-2">
+                  Blood Group
+                </div>
                 <select
                   value={transferForm.bloodGroup}
-                  onChange={(e) => setTransferForm((p) => ({ ...p, bloodGroup: e.target.value as BloodGroup }))}
+                  onChange={(e) =>
+                    setTransferForm((p) => ({ ...p, bloodGroup: e.target.value as BloodGroup }))
+                  }
                   className="w-full px-3 py-2.5 bg-background border border-border font-mono text-sm focus:border-primary outline-none"
                 >
                   {BLOOD_GROUPS.map((g) => {
                     const stock = inventory.find((i) => i.bloodGroup === g);
-                    return <option key={g} value={g}>{g} ({stock?.units ?? 0} available)</option>;
+                    return (
+                      <option key={g} value={g}>
+                        {g} ({stock?.units ?? 0} available)
+                      </option>
+                    );
                   })}
                 </select>
               </label>
               <label>
-                <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-2">Units</div>
+                <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-2">
+                  Units
+                </div>
                 <input
                   type="number"
                   min={1}
                   max={inventory.find((i) => i.bloodGroup === transferForm.bloodGroup)?.units ?? 1}
                   value={transferForm.units}
-                  onChange={(e) => setTransferForm((p) => ({ ...p, units: Number(e.target.value) }))}
+                  onChange={(e) =>
+                    setTransferForm((p) => ({ ...p, units: Number(e.target.value) }))
+                  }
                   className="w-full px-3 py-2.5 bg-background border border-border font-mono text-sm focus:border-primary outline-none"
                 />
               </label>
             </div>
             <div className="p-5 border-t border-border flex justify-end gap-2">
-              <button onClick={() => setTransferTarget(null)} className="px-4 py-2 border border-border font-mono text-[10px] tracking-widest uppercase font-bold hover:bg-muted">Cancel</button>
+              <button
+                onClick={() => setTransferTarget(null)}
+                className="px-4 py-2 border border-border font-mono text-[10px] tracking-widest uppercase font-bold hover:bg-muted"
+              >
+                Cancel
+              </button>
               <button
                 onClick={handleTransfer}
                 disabled={transferring}

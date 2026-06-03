@@ -62,7 +62,9 @@ function RequestPage() {
   return (
     <div className="flex flex-col gap-6 max-w-3xl">
       <header>
-        <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">// New Dispatch</div>
+        <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">
+          // New Dispatch
+        </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight uppercase">Request Blood</h1>
         <p className="text-sm text-muted-foreground mt-1">Broadcast your need to the network.</p>
       </header>
@@ -70,10 +72,13 @@ function RequestPage() {
       {submitted ? (
         <div className="hud-panel p-8 text-center">
           <CheckCircle2 className="size-12 text-success mx-auto mb-4" strokeWidth={1.5} />
-          <div className="font-mono text-[10px] tracking-widest uppercase text-success mb-2">// Request Broadcast</div>
+          <div className="font-mono text-[10px] tracking-widest uppercase text-success mb-2">
+            // Request Broadcast
+          </div>
           <h2 className="text-2xl font-bold mb-2">{submitted.id} dispatched</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            Network is matching {units} unit{units > 1 ? "s" : ""} of <strong>{bloodGroup}</strong> for {location}.
+            Network is matching {units} unit{units > 1 ? "s" : ""} of <strong>{bloodGroup}</strong>{" "}
+            for {location}.
           </p>
           <div className="grid grid-cols-3 gap-px bg-border border border-border max-w-md mx-auto">
             <Stat label="Request ID" value={submitted.id} />
@@ -97,7 +102,9 @@ function RequestPage() {
                   type="button"
                   onClick={() => setBloodGroup(g)}
                   className={`py-3 font-mono text-sm font-bold transition-colors ${
-                    bloodGroup === g ? "bg-primary text-primary-foreground" : "bg-surface hover:bg-muted"
+                    bloodGroup === g
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-surface hover:bg-muted"
                   }`}
                 >
                   {g}
@@ -116,7 +123,9 @@ function RequestPage() {
                 onChange={(e) => setUnits(Number(e.target.value))}
                 className="flex-1 accent-primary"
               />
-              <span className="font-mono text-2xl font-bold tabular-nums w-12 text-right">{units}</span>
+              <span className="font-mono text-2xl font-bold tabular-nums w-12 text-right">
+                {units}
+              </span>
             </div>
           </Field>
 
@@ -132,8 +141,8 @@ function RequestPage() {
                       ? u === "Critical"
                         ? "bg-primary text-primary-foreground"
                         : u === "Urgent"
-                        ? "bg-warning text-foreground"
-                        : "bg-foreground text-background"
+                          ? "bg-warning text-foreground"
+                          : "bg-foreground text-background"
                       : "bg-surface hover:bg-muted"
                   }`}
                 >
@@ -202,7 +211,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-surface p-4">
-      <div className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground mb-1">{label}</div>
+      <div className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground mb-1">
+        {label}
+      </div>
       <div className="font-mono text-xl font-bold tabular-nums">{value}</div>
     </div>
   );

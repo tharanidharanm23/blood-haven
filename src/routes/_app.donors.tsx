@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Star, Siren, Phone, MessageCircle, AlertTriangle } from "lucide-react";
 import { ReportDialog } from "@/components/ReportDialog";
-import type { Donor } from "@/lib/mock-data";
+import type { BloodRequest, Donor } from "@/lib/mock-data";
 import { BloodTag, UrgencyBadge } from "@/components/UrgencyBadge";
 import { getDonorsData } from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
@@ -22,7 +22,7 @@ type Sort = "location" | "eligible";
 
 function DonorsPage() {
   const [donors, setDonors] = useState<Donor[]>([]);
-  const [requests, setRequests] = useState<any[]>([]);
+  const [requests, setRequests] = useState<BloodRequest[]>([]);
   const session = getSessionUser();
   const [sort, setSort] = useState<Sort>("location");
 
@@ -75,9 +75,15 @@ function DonorsPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">// Match Engine</div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight uppercase">Smart Donor Match</h1>
-          <p className="text-sm text-muted-foreground mt-1">Ranked by proximity and eligibility window.</p>
+          <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">
+            // Match Engine
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight uppercase">
+            Smart Donor Match
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Ranked by proximity and eligibility window.
+          </p>
         </div>
         <div className="grid grid-cols-2 gap-px bg-border border border-border">
           {(["location", "eligible"] as Sort[]).map((s) => (
@@ -104,7 +110,9 @@ function DonorsPage() {
                 <div className="font-mono text-[10px] tracking-widest uppercase text-primary font-bold">
                   Active Emergencies
                 </div>
-                <h2 className="text-lg font-bold">{critical.length} critical request{critical.length > 1 ? "s" : ""}</h2>
+                <h2 className="text-lg font-bold">
+                  {critical.length} critical request{critical.length > 1 ? "s" : ""}
+                </h2>
               </div>
             </div>
             <button
@@ -135,7 +143,9 @@ function DonorsPage() {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border border border-border">
-        {sorted.map((d, i) => <DonorCard key={d.id} donor={d} best={i === 0 && sort === "location"} />)}
+        {sorted.map((d, i) => (
+          <DonorCard key={d.id} donor={d} best={i === 0 && sort === "location"} />
+        ))}
       </div>
     </div>
   );
@@ -147,11 +157,15 @@ function DonorCard({ donor, best }: { donor: Donor & { matchLevel: number }; bes
   const whatsappLink = (phone: string | undefined, name: string) => {
     if (!phone) return undefined;
     const digits = phone.replace(/[^\d]/g, "");
-    return digits ? `https://wa.me/${digits}?text=${encodeURIComponent(`Hi ${name}, I saw your profile on Donor Haven. Are you available for a blood donation?`)}` : undefined;
+    return digits
+      ? `https://wa.me/${digits}?text=${encodeURIComponent(`Hi ${name}, I saw your profile on Donor Haven. Are you available for a blood donation?`)}`
+      : undefined;
   };
 
   return (
-    <div className={`bg-surface p-5 relative flex flex-col h-full ${best ? "ring-2 ring-primary -m-px z-10" : ""}`}>
+    <div
+      className={`bg-surface p-5 relative flex flex-col h-full ${best ? "ring-2 ring-primary -m-px z-10" : ""}`}
+    >
       {best && (
         <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-2 py-1 font-mono text-[9px] tracking-widest uppercase font-bold flex items-center gap-1">
           <Star className="size-3" /> Top Match
@@ -160,7 +174,10 @@ function DonorCard({ donor, best }: { donor: Donor & { matchLevel: number }; bes
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="size-10 bg-muted text-foreground flex items-center justify-center font-mono text-sm font-bold">
-            {donor.name.split(" ").map((n) => n[0]).join("")}
+            {donor.name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")}
           </div>
           <div>
             <div className="font-mono text-[10px] text-muted-foreground">{donor.id}</div>
@@ -170,8 +187,15 @@ function DonorCard({ donor, best }: { donor: Donor & { matchLevel: number }; bes
         <BloodTag group={donor.bloodGroup} />
       </div>
       <div className="grid grid-cols-3 gap-2 mb-4 text-center border-t border-b border-border py-3">
-        <KV label="Level" value={donor.matchLevel === 1 ? "LOCAL" : donor.matchLevel === 2 ? "DISTRICT" : "FAR"} />
-        <KV label="Status" value={donor.available ? "READY" : "OFF"} tone={donor.available ? "success" : "muted"} />
+        <KV
+          label="Level"
+          value={donor.matchLevel === 1 ? "LOCAL" : donor.matchLevel === 2 ? "DISTRICT" : "FAR"}
+        />
+        <KV
+          label="Status"
+          value={donor.available ? "READY" : "OFF"}
+          tone={donor.available ? "success" : "muted"}
+        />
         <KV label="Last" value={donor.lastDonation.slice(5)} />
       </div>
 
@@ -179,7 +203,12 @@ function DonorCard({ donor, best }: { donor: Donor & { matchLevel: number }; bes
         <a
           href={donor.phone ? `tel:${donor.phone}` : undefined}
           className="flex items-center justify-center gap-2 bg-foreground text-background py-2.5 font-mono text-[10px] tracking-widest uppercase font-bold hover:bg-primary transition-colors disabled:opacity-40"
-          onClick={(e) => { if (!donor.phone) { e.preventDefault(); toast.error("No phone number"); } }}
+          onClick={(e) => {
+            if (!donor.phone) {
+              e.preventDefault();
+              toast.error("No phone number");
+            }
+          }}
         >
           <Phone className="size-3.5" /> Call
         </a>
@@ -188,7 +217,12 @@ function DonorCard({ donor, best }: { donor: Donor & { matchLevel: number }; bes
           target="_blank"
           rel="noreferrer"
           className="flex items-center justify-center gap-2 border border-border py-2.5 font-mono text-[10px] tracking-widest uppercase font-bold hover:bg-muted transition-colors"
-          onClick={(e) => { if (!donor.phone) { e.preventDefault(); toast.error("No phone number"); } }}
+          onClick={(e) => {
+            if (!donor.phone) {
+              e.preventDefault();
+              toast.error("No phone number");
+            }
+          }}
         >
           <MessageCircle className="size-3.5" /> WhatsApp
         </a>
@@ -211,11 +245,25 @@ function DonorCard({ donor, best }: { donor: Donor & { matchLevel: number }; bes
   );
 }
 
-function KV({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "success" | "muted" }) {
+function KV({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "success" | "muted";
+}) {
   return (
     <div>
-      <div className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground mb-1">{label}</div>
-      <div className={`font-mono text-xs font-bold tabular-nums ${tone === "success" ? "text-success" : tone === "muted" ? "text-muted-foreground" : ""}`}>{value}</div>
+      <div className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground mb-1">
+        {label}
+      </div>
+      <div
+        className={`font-mono text-xs font-bold tabular-nums ${tone === "success" ? "text-success" : tone === "muted" ? "text-muted-foreground" : ""}`}
+      >
+        {value}
+      </div>
     </div>
   );
 }

@@ -5,26 +5,28 @@ async function main() {
   const dbName = process.env.MONGODB_DB ?? "blood_haven";
   const client = await new MongoClient(uri).connect();
   const db = client.db(dbName);
-  
+
   const hospitalUsers = await db.collection("users").find({ role: "hospital" }).toArray();
   for (const h of hospitalUsers) {
     await db.collection("hospitals").updateOne(
       { email: h.email },
-      { $set: {
-        id: `H-${Date.now().toString().slice(-6)}${Math.floor(Math.random()*1000)}`,
-        name: h.name,
-        email: h.email,
-        phone: h.phone,
-        district: h.district,
-        constituency: h.constituency,
-        address: h.address,
-        verified: h.verified || false,
-        createdAt: h.createdAt,
-      }},
-      { upsert: true }
+      {
+        $set: {
+          id: `H-${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 1000)}`,
+          name: h.name,
+          email: h.email,
+          phone: h.phone,
+          district: h.district,
+          constituency: h.constituency,
+          address: h.address,
+          verified: h.verified || false,
+          createdAt: h.createdAt,
+        },
+      },
+      { upsert: true },
     );
   }
-  
+
   // Create some requests for the Tiruppur hospitals so Help Hospital page has data
   const hospitals = await db.collection("hospitals").find({ district: "Tiruppur" }).toArray();
   const requests = hospitals.slice(0, 8).map((h, i) => ({
@@ -43,11 +45,7 @@ async function main() {
   }));
 
   for (const req of requests) {
-    await db.collection("requests").updateOne(
-      { id: req.id },
-      { $set: req },
-      { upsert: true }
-    );
+    await db.collection("requests").updateOne({ id: req.id }, { $set: req }, { upsert: true });
   }
 
   await client.close();

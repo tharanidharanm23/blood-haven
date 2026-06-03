@@ -17,26 +17,26 @@ const CONSTITUENCIES = [
 const BLOOD_GROUPS = ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"] as const;
 
 const SAMPLE_USERS = [
-  { name: "Rajesh Murugan",     bg: "O+",  phone: "9876500001", constituency: "Tiruppur North" },
-  { name: "Kavitha Selvam",     bg: "A+",  phone: "9876500002", constituency: "Tiruppur South" },
-  { name: "Suresh Natarajan",   bg: "B+",  phone: "9876500003", constituency: "Avinashi (SC)" },
-  { name: "Priya Devi",         bg: "O-",  phone: "9876500004", constituency: "Palladam" },
-  { name: "Gopal Krishnan",     bg: "AB+", phone: "9876500005", constituency: "Udumalaipettai" },
-  { name: "Meena Sundaram",     bg: "A-",  phone: "9876500006", constituency: "Dharapuram (SC)" },
-  { name: "Karthik Velan",      bg: "B-",  phone: "9876500007", constituency: "Kangayam" },
-  { name: "Deepa Ramasamy",     bg: "O+",  phone: "9876500008", constituency: "Tiruppur North" },
-  { name: "Arun Palani",        bg: "A+",  phone: "9876500009", constituency: "Tiruppur South" },
-  { name: "Lakshmi Ganesh",     bg: "AB-", phone: "9876500010", constituency: "Avinashi (SC)" },
-  { name: "Venkatesh Ravi",     bg: "B+",  phone: "9876500011", constituency: "Palladam" },
-  { name: "Saranya Moorthy",    bg: "O-",  phone: "9876500012", constituency: "Udumalaipettai" },
-  { name: "Ramesh Balan",       bg: "A+",  phone: "9876500013", constituency: "Dharapuram (SC)" },
-  { name: "Nithya Shankar",     bg: "O+",  phone: "9876500014", constituency: "Kangayam" },
-  { name: "Dinesh Kumar",       bg: "B-",  phone: "9876500015", constituency: "Tiruppur North" },
-  { name: "Revathi Anand",      bg: "AB+", phone: "9876500016", constituency: "Tiruppur South" },
-  { name: "Senthil Arumugam",   bg: "A-",  phone: "9876500017", constituency: "Palladam" },
-  { name: "Jaya Lakshmi",       bg: "O+",  phone: "9876500018", constituency: "Udumalaipettai" },
-  { name: "Manikandan Pillai",  bg: "B+",  phone: "9876500019", constituency: "Dharapuram (SC)" },
-  { name: "Anusha Pradeep",     bg: "AB-", phone: "9876500020", constituency: "Kangayam" },
+  { name: "Rajesh Murugan", bg: "O+", phone: "9876500001", constituency: "Tiruppur North" },
+  { name: "Kavitha Selvam", bg: "A+", phone: "9876500002", constituency: "Tiruppur South" },
+  { name: "Suresh Natarajan", bg: "B+", phone: "9876500003", constituency: "Avinashi (SC)" },
+  { name: "Priya Devi", bg: "O-", phone: "9876500004", constituency: "Palladam" },
+  { name: "Gopal Krishnan", bg: "AB+", phone: "9876500005", constituency: "Udumalaipettai" },
+  { name: "Meena Sundaram", bg: "A-", phone: "9876500006", constituency: "Dharapuram (SC)" },
+  { name: "Karthik Velan", bg: "B-", phone: "9876500007", constituency: "Kangayam" },
+  { name: "Deepa Ramasamy", bg: "O+", phone: "9876500008", constituency: "Tiruppur North" },
+  { name: "Arun Palani", bg: "A+", phone: "9876500009", constituency: "Tiruppur South" },
+  { name: "Lakshmi Ganesh", bg: "AB-", phone: "9876500010", constituency: "Avinashi (SC)" },
+  { name: "Venkatesh Ravi", bg: "B+", phone: "9876500011", constituency: "Palladam" },
+  { name: "Saranya Moorthy", bg: "O-", phone: "9876500012", constituency: "Udumalaipettai" },
+  { name: "Ramesh Balan", bg: "A+", phone: "9876500013", constituency: "Dharapuram (SC)" },
+  { name: "Nithya Shankar", bg: "O+", phone: "9876500014", constituency: "Kangayam" },
+  { name: "Dinesh Kumar", bg: "B-", phone: "9876500015", constituency: "Tiruppur North" },
+  { name: "Revathi Anand", bg: "AB+", phone: "9876500016", constituency: "Tiruppur South" },
+  { name: "Senthil Arumugam", bg: "A-", phone: "9876500017", constituency: "Palladam" },
+  { name: "Jaya Lakshmi", bg: "O+", phone: "9876500018", constituency: "Udumalaipettai" },
+  { name: "Manikandan Pillai", bg: "B+", phone: "9876500019", constituency: "Dharapuram (SC)" },
+  { name: "Anusha Pradeep", bg: "AB-", phone: "9876500020", constituency: "Kangayam" },
 ];
 
 async function main() {
@@ -71,19 +71,13 @@ async function main() {
 
   // Upsert so re-running doesn't duplicate
   for (const user of userDocs) {
-    await db.collection("users").updateOne(
-      { phone: user.phone },
-      { $set: user },
-      { upsert: true },
-    );
+    await db.collection("users").updateOne({ phone: user.phone }, { $set: user }, { upsert: true });
   }
 
   for (const donor of donorDocs) {
-    await db.collection("donors").updateOne(
-      { phone: donor.phone },
-      { $set: donor },
-      { upsert: true },
-    );
+    await db
+      .collection("donors")
+      .updateOne({ phone: donor.phone }, { $set: donor }, { upsert: true });
   }
 
   await client.close();

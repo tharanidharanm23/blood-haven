@@ -1,6 +1,7 @@
 import type { BloodGroup, District, Role } from "@/lib/mock-data";
 
 export type SessionUser = {
+  id: string;
   name: string;
   email?: string;
   role: Role;

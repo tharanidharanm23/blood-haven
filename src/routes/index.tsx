@@ -36,12 +36,22 @@ const features = [
 ];
 
 const steps = [
-  { n: "01", title: "Register", body: "Create a Donor, Hospital, or Admin profile with one of Tamil Nadu's 38 districts." },
-  { n: "02", title: "Match", body: "Get matched to verified requests within your district and eligibility." },
-  { n: "03", title: "Save Lives", body: "Confirm, donate, and track your impact across the network." },
+  {
+    n: "01",
+    title: "Register",
+    body: "Create a Donor, Hospital, or Admin profile with one of Tamil Nadu's 38 districts.",
+  },
+  {
+    n: "02",
+    title: "Match",
+    body: "Get matched to verified requests within your district and eligibility.",
+  },
+  {
+    n: "03",
+    title: "Save Lives",
+    body: "Confirm, donate, and track your impact across the network.",
+  },
 ];
-
-
 
 function HomePage() {
   const networkStats = [
@@ -57,7 +67,7 @@ function HomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 hud-grid opacity-40 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" />
+        <div className="absolute inset-0 hud-grid opacity-40 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)] pointer-events-none" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-20 sm:pt-28 pb-20">
           <div className="flex flex-col items-start max-w-4xl">
             <div className="flex items-center gap-3 mb-8 border border-primary/30 bg-primary-dim/40 px-3 py-1.5">
@@ -151,8 +161,6 @@ function HomePage() {
         </div>
       </section>
 
-
-
       {/* CTA */}
       <section className="border-t border-border bg-foreground text-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-20 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
@@ -204,9 +212,21 @@ function HomePage() {
               Network
             </div>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/dashboard" className="hover:text-primary">Dashboard</Link></li>
-              <li><Link to="/donors" className="hover:text-primary">Donors</Link></li>
-              <li><Link to="/inventory" className="hover:text-primary">Inventory</Link></li>
+              <li>
+                <Link to="/dashboard" className="hover:text-primary">
+                  Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link to="/donors" className="hover:text-primary">
+                  Donors
+                </Link>
+              </li>
+              <li>
+                <Link to="/inventory" className="hover:text-primary">
+                  Inventory
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

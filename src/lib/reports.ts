@@ -13,4 +13,3 @@ export type Report = {
   status: "open" | "resolved";
   createdAt: string;
 };
-

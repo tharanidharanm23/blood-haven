@@ -3,7 +3,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Bell, CheckCircle2, Siren, Users, MapPin, Award, Link2, Trash2 } from "lucide-react";
 import type { InventoryItem, Donor, BloodRequest } from "@/lib/mock-data";
 import { BloodTag, UrgencyBadge } from "@/components/UrgencyBadge";
-import { getHospitalData, getMyRequests, deleteBloodRequest, markRequestFulfilled } from "@/lib/client-api";
+import {
+  getHospitalData,
+  getMyRequests,
+  deleteBloodRequest,
+  markRequestFulfilled,
+} from "@/lib/client-api";
 import { getSessionUser } from "@/lib/session";
 import { toast } from "sonner";
 
@@ -50,23 +55,29 @@ function HospitalDashboardPage() {
   }, [phone, email]);
 
   const activeRequests = useMemo(
-    () => requests
-      .filter((r) => r.status !== "Fulfilled")
-      // Exclude own requests from "others' requests"
-      .filter((r) => {
-        if (phone && r.requesterPhone && r.requesterPhone.replace(/[^\d]/g, "").endsWith(phone.replace(/[^\d]/g, "").slice(-10))) return false;
-        if (email && r.requesterEmail === email) return false;
-        return true;
-      }),
+    () =>
+      requests
+        .filter((r) => r.status !== "Fulfilled")
+        // Exclude own requests from "others' requests"
+        .filter((r) => {
+          if (
+            phone &&
+            r.requesterPhone &&
+            r.requesterPhone.replace(/[^\d]/g, "").endsWith(phone.replace(/[^\d]/g, "").slice(-10))
+          )
+            return false;
+          if (email && r.requesterEmail === email) return false;
+          return true;
+        }),
     [requests, phone, email],
   );
 
   const lowStock = useMemo(() => inventory.filter((i) => i.units / i.capacity < 0.25), [inventory]);
 
   const deleteRequest = async (requestId: string) => {
-    if (!session?.phone) return;
+    if (!session) return;
     try {
-      await deleteBloodRequest({ data: { requestId, requesterPhone: session.phone } });
+      await deleteBloodRequest({ data: { requestId } });
       setRequests((prev) => prev.filter((r) => r.id !== requestId));
       setMyRequests((prev) => prev.filter((r) => r.id !== requestId));
       toast.success("Request deleted");
@@ -76,11 +87,15 @@ function HospitalDashboardPage() {
   };
 
   const fulfillRequest = async (requestId: string) => {
-    if (!session?.phone) return;
+    if (!session) return;
     try {
-      await markRequestFulfilled({ data: { requestId, requesterPhone: session.phone } });
-      setRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, status: "Fulfilled" } : r)));
-      setMyRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, status: "Fulfilled" } : r)));
+      await markRequestFulfilled({ data: { requestId } });
+      setRequests((prev) =>
+        prev.map((r) => (r.id === requestId ? { ...r, status: "Fulfilled" } : r)),
+      );
+      setMyRequests((prev) =>
+        prev.map((r) => (r.id === requestId ? { ...r, status: "Fulfilled" } : r)),
+      );
       toast.success("Marked as fulfilled");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not update request");
@@ -93,7 +108,9 @@ function HospitalDashboardPage() {
         <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">
           // Hospital Operations
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight uppercase">Hospital Dashboard</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight uppercase">
+          Hospital Dashboard
+        </h1>
       </header>
 
       {/* Hospital Info */}
@@ -109,7 +126,12 @@ function HospitalDashboardPage() {
 
       {/* Overview stat cards that link to modules */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border">
-        <LinkCard to="/request" label="Active Requests" value={activeRequests.length} icon={Siren} />
+        <LinkCard
+          to="/request"
+          label="Active Requests"
+          value={activeRequests.length}
+          icon={Siren}
+        />
         <LinkCard to="/donors" label="Matched Donors" value={donors.length} icon={Users} />
         <LinkCard to="/inventory" label="Low Stock Alerts" value={lowStock.length} icon={Bell} />
         <LinkCard to="/hospital-chain" label="Hospital Chain" value={0} icon={Link2} badge="New" />
@@ -117,16 +139,33 @@ function HospitalDashboardPage() {
 
       {/* Quick links to new modules */}
       <div className="grid sm:grid-cols-3 gap-px bg-border border border-border">
-        <QuickLink to="/nearby-requests" icon={MapPin} label="Requests Around Us" description="View nearby blood requests from donors" />
-        <QuickLink to="/certify" icon={Award} label="Certify Donors" description="Certify a donor and increase lifetime count" />
-        <QuickLink to="/hospital-chain" icon={Link2} label="Hospital Chain" description="Transfer blood between hospitals" />
+        <QuickLink
+          to="/nearby-requests"
+          icon={MapPin}
+          label="Requests Around Us"
+          description="View nearby blood requests from donors"
+        />
+        <QuickLink
+          to="/certify"
+          icon={Award}
+          label="Certify Donors"
+          description="Certify a donor and increase lifetime count"
+        />
+        <QuickLink
+          to="/hospital-chain"
+          icon={Link2}
+          label="Hospital Chain"
+          description="Transfer blood between hospitals"
+        />
       </div>
 
       {/* My Requests Section */}
       {myRequests.length > 0 && (
         <section className="hud-panel">
           <div className="p-5 border-b border-border">
-            <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1">// My Dispatches</div>
+            <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1">
+              // My Dispatches
+            </div>
             <h2 className="text-lg font-bold">My Requests</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
@@ -134,11 +173,15 @@ function HospitalDashboardPage() {
               <div key={r.id} className="bg-surface p-5 flex flex-col gap-3">
                 <div className="flex justify-between items-start">
                   <div className="flex-1 min-w-0">
-                    <div className="font-mono text-[9px] tracking-widest uppercase text-primary font-bold mb-1">{r.id}</div>
+                    <div className="font-mono text-[9px] tracking-widest uppercase text-primary font-bold mb-1">
+                      {r.id}
+                    </div>
                     <h3 className="font-bold truncate">{r.hospital}</h3>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
                       <MapPin className="size-3" />
-                      <span className="truncate">{r.location} · {r.constituency}</span>
+                      <span className="truncate">
+                        {r.location} · {r.constituency}
+                      </span>
                     </div>
                   </div>
                   <UrgencyBadge level={r.urgency} />
@@ -146,8 +189,12 @@ function HospitalDashboardPage() {
                 <div className="flex items-center gap-3 bg-muted/50 p-3">
                   <BloodTag group={r.bloodGroup} />
                   <div className="flex flex-col">
-                    <span className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground">Status</span>
-                    <span className="font-mono text-sm font-bold">{r.status} · {r.units}U</span>
+                    <span className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground">
+                      Status
+                    </span>
+                    <span className="font-mono text-sm font-bold">
+                      {r.status} · {r.units}U
+                    </span>
                   </div>
                 </div>
                 {r.status !== "Fulfilled" && (
@@ -175,7 +222,9 @@ function HospitalDashboardPage() {
       {/* Active Requests (from others) — Card Layout */}
       <section id="active-requests" className="hud-panel">
         <div className="p-5 border-b border-border">
-          <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1">// Incoming Signals</div>
+          <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1">
+            // Incoming Signals
+          </div>
           <h2 className="text-lg font-bold">Active Requests</h2>
         </div>
         {activeRequests.length === 0 ? (
@@ -185,17 +234,26 @@ function HospitalDashboardPage() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
             {activeRequests.map((request) => (
-              <div key={request.id} className="bg-surface p-5 flex flex-col gap-3 border border-transparent hover:border-primary/20 transition-all">
+              <div
+                key={request.id}
+                className="bg-surface p-5 flex flex-col gap-3 border border-transparent hover:border-primary/20 transition-all"
+              >
                 <div className="flex justify-between items-start">
                   <div className="flex-1 min-w-0">
-                    <div className="font-mono text-[9px] tracking-widest uppercase text-primary font-bold mb-1">{request.id}</div>
+                    <div className="font-mono text-[9px] tracking-widest uppercase text-primary font-bold mb-1">
+                      {request.id}
+                    </div>
                     <h3 className="font-bold truncate">{request.hospital}</h3>
                     {request.requesterName && (
-                      <div className="text-xs text-muted-foreground mt-0.5">{request.requesterName}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {request.requesterName}
+                      </div>
                     )}
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
                       <MapPin className="size-3" />
-                      <span className="truncate">{request.location} · {request.constituency}</span>
+                      <span className="truncate">
+                        {request.location} · {request.constituency}
+                      </span>
                     </div>
                   </div>
                   <UrgencyBadge level={request.urgency} />
@@ -203,8 +261,12 @@ function HospitalDashboardPage() {
                 <div className="flex items-center gap-3 bg-muted/50 p-3">
                   <BloodTag group={request.bloodGroup} />
                   <div className="flex flex-col">
-                    <span className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground">Quantity</span>
-                    <span className="font-mono text-sm font-bold">{request.units}U · {request.status}</span>
+                    <span className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground">
+                      Quantity
+                    </span>
+                    <span className="font-mono text-sm font-bold">
+                      {request.units}U · {request.status}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -232,7 +294,9 @@ function LinkCard({
   return (
     <Link to={to} className="bg-surface p-4 hover:bg-muted transition-colors relative block">
       <div className="flex items-center justify-between mb-2">
-        <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground">{label}</div>
+        <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground">
+          {label}
+        </div>
         <Icon className="size-4 text-primary" />
       </div>
       <div className="font-mono text-2xl font-bold tabular-nums">{value}</div>
@@ -257,7 +321,10 @@ function QuickLink({
   description: string;
 }) {
   return (
-    <Link to={to} className="bg-surface p-5 hover:bg-muted transition-colors flex items-start gap-4 group">
+    <Link
+      to={to}
+      className="bg-surface p-5 hover:bg-muted transition-colors flex items-start gap-4 group"
+    >
       <div className="size-10 bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
         <Icon className="size-5" />
       </div>

@@ -51,7 +51,9 @@ export function ReportDialog({
       <div className="w-full max-w-md border border-border bg-surface hud-shadow">
         <div className="flex items-center justify-between border-b border-border p-5">
           <div>
-            <div className="font-mono text-[10px] tracking-widest uppercase text-primary">// Report</div>
+            <div className="font-mono text-[10px] tracking-widest uppercase text-primary">
+              // Report
+            </div>
             <h2 className="text-lg font-bold">Report {targetRole}</h2>
             <div className="font-mono text-xs text-muted-foreground">{targetPhoneOrEmail}</div>
           </div>
@@ -90,4 +92,3 @@ export function ReportDialog({
     </div>
   );
 }
-

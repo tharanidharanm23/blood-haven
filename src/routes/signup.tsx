@@ -124,7 +124,7 @@ function SignupPage() {
             ))}
           </select>
         </Field>
-        <button type="submit" disabled={loading} className="bg-primary text-primary-foreground py-3 font-mono text-xs tracking-widest uppercase font-bold hover:bg-foreground transition-colors disabled:opacity-50">
+        <button type="submit" disabled={loading} className="bg-primary text-primary-foreground py-3 font-mono text-xs tracking-widest uppercase font-bold hover:bg-foreground transition-colors disabled:opacity-50 pointer-events-auto cursor-pointer">
           {loading ? "Provisioning..." : "Activate Terminal"}
         </button>
       </form>

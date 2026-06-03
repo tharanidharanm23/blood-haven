@@ -20,7 +20,8 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Logo } from "./Logo";
 import type { Notification, Role } from "@/lib/mock-data";
-import { clearSessionUser, getSessionUser, type SessionUser } from "@/lib/session";
+import { fetchSessionUser, logoutUser } from "@/lib/client-api";
+import { clearSessionUser, getSessionUser, saveSessionUser, type SessionUser } from "@/lib/session";
 
 type NavItem = {
   to: string;
@@ -56,7 +57,15 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
 
 const ALLOWED_BY_ROLE: Record<Role, string[]> = {
   donor: ["/donor", "/request", "/search", "/help-hospital", "/hospitals"],
-  hospital: ["/hospital", "/request", "/donors", "/inventory", "/nearby-requests", "/certify", "/hospital-chain"],
+  hospital: [
+    "/hospital",
+    "/request",
+    "/donors",
+    "/inventory",
+    "/nearby-requests",
+    "/certify",
+    "/hospital-chain",
+  ],
   admin: ["/dashboard", "/request", "/donors", "/inventory", "/search"],
 };
 
@@ -76,8 +85,26 @@ export function DashboardShell({ notifications }: { notifications: Notification[
   const unread = notifications.filter((n) => !n.read).length;
 
   useEffect(() => {
-    setSessionUser(getSessionUser());
-    setMounted(true);
+    let active = true;
+    const local = getSessionUser();
+    if (local) setSessionUser(local);
+    fetchSessionUser()
+      .then((user) => {
+        if (!active) return;
+        if (user) {
+          saveSessionUser(user);
+          setSessionUser(user);
+        } else if (local) {
+          clearSessionUser();
+          setSessionUser(null);
+        }
+      })
+      .finally(() => {
+        if (active) setMounted(true);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const navItems = useMemo(() => {
@@ -87,7 +114,7 @@ export function DashboardShell({ notifications }: { notifications: Notification[
 
   useEffect(() => {
     if (!mounted) return;
-    
+
     if (!sessionUser?.role) {
       navigate({ to: "/login" });
       return;
@@ -170,9 +197,16 @@ export function DashboardShell({ notifications }: { notifications: Notification[
                 </span>
               )}
             </button>
-            {notifOpen && <NotifPanel onClose={() => setNotifOpen(false)} notifications={notifications} />}
+            {notifOpen && (
+              <NotifPanel onClose={() => setNotifOpen(false)} notifications={notifications} />
+            )}
             <button
-              onClick={() => {
+              onClick={async () => {
+                try {
+                  await logoutUser();
+                } catch {
+                  /* ignore */
+                }
                 clearSessionUser();
                 setSessionUser(null);
                 toast.success("Logged out");
@@ -203,7 +237,13 @@ export function DashboardShell({ notifications }: { notifications: Notification[
   );
 }
 
-function NotifPanel({ onClose, notifications }: { onClose: () => void; notifications: Notification[] }) {
+function NotifPanel({
+  onClose,
+  notifications,
+}: {
+  onClose: () => void;
+  notifications: Notification[];
+}) {
   const [items, setItems] = useState(notifications);
   return (
     <>

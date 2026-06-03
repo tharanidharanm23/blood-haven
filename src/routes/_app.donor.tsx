@@ -1,7 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { MapPin, Calendar, Droplets, Edit3, MessageCircle, Phone, X, CheckCircle2, Trash2 } from "lucide-react";
+import {
+  MapPin,
+  Calendar,
+  Droplets,
+  Edit3,
+  MessageCircle,
+  Phone,
+  X,
+  CheckCircle2,
+  Trash2,
+} from "lucide-react";
 import { BloodTag, UrgencyBadge } from "@/components/UrgencyBadge";
 import { ReportDialog } from "@/components/ReportDialog";
 import {
@@ -22,6 +32,7 @@ import {
   type District,
   type Donor,
   type BloodRequest,
+  type DonationHistoryItem,
 } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/_app/donor")({
@@ -35,11 +46,16 @@ export const Route = createFileRoute("/_app/donor")({
 });
 
 function DonorPage() {
-  const [profile, setProfile] = useState<Awaited<ReturnType<typeof getDonorProfileByPhone>> | null>(null);
+  const [profile, setProfile] = useState<Awaited<ReturnType<typeof getDonorProfileByPhone>> | null>(
+    null,
+  );
   const [available, setAvailable] = useState(true);
   const [editorOpen, setEditorOpen] = useState(false);
   const [myRequests, setMyRequests] = useState<BloodRequest[]>([]);
-  const [reportTarget, setReportTarget] = useState<null | { role: "donor" | "hospital"; id: string }>(null);
+  const [reportTarget, setReportTarget] = useState<null | {
+    role: "donor" | "hospital";
+    id: string;
+  }>(null);
 
   useEffect(() => {
     let active = true;
@@ -56,15 +72,6 @@ function DonorPage() {
     };
   }, []);
 
-  if (!profile) {
-    return (
-      <div className="hud-panel p-8 text-center text-muted-foreground font-mono text-sm">
-        Loading donor profile...
-      </div>
-    );
-  }
-
-  const { me, history, nearby, nearbyDonors = [], user } = profile;
   const phone = getSessionUser()?.phone;
   const email = getSessionUser()?.email;
 
@@ -75,10 +82,20 @@ function DonorPage() {
       .catch(() => {});
   }, [phone, email]);
 
+  if (!profile) {
+    return (
+      <div className="hud-panel p-8 text-center text-muted-foreground font-mono text-sm">
+        Loading donor profile...
+      </div>
+    );
+  }
+
+  const { me, history, nearby, nearbyDonors = [], user } = profile;
+
   const handleDeleteRequest = async (requestId: string) => {
-    if (!phone) return;
+    if (!phone && !email) return;
     try {
-      await deleteBloodRequest({ data: { requestId, requesterPhone: phone } });
+      await deleteBloodRequest({ data: { requestId } });
       setMyRequests((prev) => prev.filter((r) => r.id !== requestId));
       toast.success("Request cancelled");
     } catch (error) {
@@ -87,10 +104,12 @@ function DonorPage() {
   };
 
   const handleFulfillRequest = async (requestId: string) => {
-    if (!phone) return;
+    if (!phone && !email) return;
     try {
-      await markRequestFulfilled({ data: { requestId, requesterPhone: phone } });
-      setMyRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, status: "Fulfilled" } : r)));
+      await markRequestFulfilled({ data: { requestId } });
+      setMyRequests((prev) =>
+        prev.map((r) => (r.id === requestId ? { ...r, status: "Fulfilled" } : r)),
+      );
       toast.success("Marked as fulfilled");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not update");
@@ -107,7 +126,9 @@ function DonorPage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">// Operative File</div>
+        <div className="font-mono text-[10px] tracking-widest uppercase text-primary mb-2">
+          // Operative File
+        </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight uppercase">Donor Profile</h1>
       </header>
 
@@ -115,26 +136,47 @@ function DonorPage() {
         <div className="hud-panel p-6 lg:col-span-1">
           <div className="flex items-center gap-4 mb-6">
             <div className="size-16 bg-primary text-primary-foreground flex items-center justify-center font-mono text-xl font-bold">
-              {user?.initials ?? me?.name?.split(" ").map((part: string) => part[0]).join("").slice(0, 2)}
+              {user?.initials ??
+                me?.name
+                  ?.split(" ")
+                  .map((part: string) => part[0])
+                  .join("")
+                  .slice(0, 2)}
             </div>
             <div>
-              <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground">{me.id}</div>
+              <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground">
+                {me.id}
+              </div>
               <h2 className="text-xl font-bold">{me.name}</h2>
             </div>
           </div>
           <div className="flex flex-col gap-3 text-sm">
-            <Row icon={Droplets} label="Blood Group"><BloodTag group={me.bloodGroup} /></Row>
-            <Row icon={MapPin} label="Location"><span>{me.city}</span></Row>
-            <Row icon={MapPin} label="Constituency"><span>{me.constituency}</span></Row>
-            <Row icon={Calendar} label="Last Donation"><span className="font-mono">{me.lastDonation}</span></Row>
-            <Row icon={Calendar} label="Lifetime"><span className="font-mono">{me.lifetimeDonations ?? history.length}</span></Row>
+            <Row icon={Droplets} label="Blood Group">
+              <BloodTag group={me.bloodGroup} />
+            </Row>
+            <Row icon={MapPin} label="Location">
+              <span>{me.city}</span>
+            </Row>
+            <Row icon={MapPin} label="Constituency">
+              <span>{me.constituency}</span>
+            </Row>
+            <Row icon={Calendar} label="Last Donation">
+              <span className="font-mono">{me.lastDonation}</span>
+            </Row>
+            <Row icon={Calendar} label="Lifetime">
+              <span className="font-mono">{me.lifetimeDonations ?? history.length}</span>
+            </Row>
           </div>
 
           <div className="mt-6 pt-6 border-t border-border">
             <div className="flex justify-between items-center mb-3">
               <div>
-                <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground">Status</div>
-                <div className="text-sm font-bold">{available ? "Available for Dispatch" : "Off Duty"}</div>
+                <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground">
+                  Status
+                </div>
+                <div className="text-sm font-bold">
+                  {available ? "Available for Dispatch" : "Off Duty"}
+                </div>
               </div>
               <button
                 onClick={() => {
@@ -145,7 +187,9 @@ function DonorPage() {
                 }}
                 className={`relative w-14 h-7 transition-colors ${available ? "bg-success" : "bg-muted-foreground/30"}`}
               >
-                <span className={`absolute top-0.5 size-6 bg-surface transition-transform ${available ? "translate-x-7" : "translate-x-0.5"}`} />
+                <span
+                  className={`absolute top-0.5 size-6 bg-surface transition-transform ${available ? "translate-x-7" : "translate-x-0.5"}`}
+                />
               </button>
             </div>
             <button
@@ -159,8 +203,12 @@ function DonorPage() {
 
         <div className="hud-panel lg:col-span-2 flex flex-col">
           <div className="p-6 border-b border-border">
-            <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1">Donation History</div>
-              <h2 className="text-lg font-bold">{history.length} lifetime contribution{history.length === 1 ? "" : "s"}</h2>
+            <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1">
+              Donation History
+            </div>
+            <h2 className="text-lg font-bold">
+              {history.length} lifetime contribution{history.length === 1 ? "" : "s"}
+            </h2>
           </div>
           <table className="w-full text-sm">
             <thead>
@@ -172,11 +220,13 @@ function DonorPage() {
               </tr>
             </thead>
             <tbody>
-              {history.map((h: any) => (
+              {history.map((h: DonationHistoryItem) => (
                 <tr key={`${h.date}-${h.location}`} className="border-t border-border">
                   <td className="p-3 font-mono">{h.date}</td>
                   <td className="p-3">{h.hospitalName ?? "-"}</td>
-                  <td className="p-3">{h.location} ({h.constituency})</td>
+                  <td className="p-3">
+                    {h.location} ({h.constituency})
+                  </td>
                   <td className="p-3 text-right font-mono tabular-nums">{h.units}</td>
                 </tr>
               ))}
@@ -197,21 +247,29 @@ function DonorPage() {
         <div className="hud-panel">
           <div className="p-6 border-b border-border flex justify-between items-center">
             <div>
-              <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1">// My Dispatches</div>
+              <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1">
+                // My Dispatches
+              </div>
               <h2 className="text-lg font-bold">My Requests</h2>
             </div>
-            <span className="font-mono text-[10px] uppercase text-muted-foreground">{myRequests.length} request{myRequests.length === 1 ? "" : "s"}</span>
+            <span className="font-mono text-[10px] uppercase text-muted-foreground">
+              {myRequests.length} request{myRequests.length === 1 ? "" : "s"}
+            </span>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
             {myRequests.map((r) => (
               <div key={r.id} className="bg-surface p-5 flex flex-col gap-3">
                 <div className="flex justify-between items-start">
                   <div className="flex-1 min-w-0">
-                    <div className="font-mono text-[9px] tracking-widest uppercase text-primary font-bold mb-1">{r.id}</div>
+                    <div className="font-mono text-[9px] tracking-widest uppercase text-primary font-bold mb-1">
+                      {r.id}
+                    </div>
                     <h3 className="font-bold truncate">{r.hospital}</h3>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
                       <MapPin className="size-3" />
-                      <span className="truncate">{r.location} · {r.constituency}</span>
+                      <span className="truncate">
+                        {r.location} · {r.constituency}
+                      </span>
                     </div>
                   </div>
                   <UrgencyBadge level={r.urgency} />
@@ -219,8 +277,12 @@ function DonorPage() {
                 <div className="flex items-center gap-3 bg-muted/50 p-3">
                   <BloodTag group={r.bloodGroup} />
                   <div className="flex flex-col">
-                    <span className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground">Status</span>
-                    <span className="font-mono text-sm font-bold">{r.status} · {r.units}U</span>
+                    <span className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground">
+                      Status
+                    </span>
+                    <span className="font-mono text-sm font-bold">
+                      {r.status} · {r.units}U
+                    </span>
                   </div>
                 </div>
                 {r.status !== "Fulfilled" && (
@@ -248,7 +310,9 @@ function DonorPage() {
       <div className="hud-panel">
         <div className="p-6 border-b border-border flex justify-between items-center">
           <div>
-            <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1">Donor Radar</div>
+            <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1">
+              Donor Radar
+            </div>
             <h2 className="text-lg font-bold">Nearby Donors</h2>
           </div>
         </div>
@@ -282,7 +346,12 @@ function DonorPage() {
                 Call Donor
               </a>
               <a
-                href={whatsappLink(d.phone, `Hi ${d.name}, emergency donor contact needed. Are you available?`) ?? undefined}
+                href={
+                  whatsappLink(
+                    d.phone,
+                    `Hi ${d.name}, emergency donor contact needed. Are you available?`,
+                  ) ?? undefined
+                }
                 onClick={(e) => {
                   if (!d.phone) {
                     e.preventDefault();
@@ -316,26 +385,34 @@ function DonorPage() {
       <div className="hud-panel">
         <div className="p-6 border-b border-border flex justify-between items-center">
           <div>
-            <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1">Inbound Signals</div>
+            <div className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1">
+              Inbound Signals
+            </div>
             <h2 className="text-lg font-bold">Nearby Requests</h2>
           </div>
-          <span className="font-mono text-[10px] uppercase text-muted-foreground">{nearby.length} matches</span>
+          <span className="font-mono text-[10px] uppercase text-muted-foreground">
+            {nearby.length} matches
+          </span>
         </div>
         <div className="grid sm:grid-cols-2 gap-px bg-border">
-          {nearby.map((r: any) => (
+          {nearby.map((r: BloodRequest) => (
             <div key={r.id} className="bg-surface p-5">
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <div className="font-mono text-[10px] text-muted-foreground">{r.id}</div>
                   <h3 className="font-bold">{r.hospital}</h3>
-                  <div className="text-xs font-mono text-muted-foreground">{r.requesterName || "Unknown"}</div>
+                  <div className="text-xs font-mono text-muted-foreground">
+                    {r.requesterName || "Unknown"}
+                  </div>
                 </div>
                 <UrgencyBadge level={r.urgency} />
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <BloodTag group={r.bloodGroup} />
                 <span className="font-mono">{r.units}U</span>
-                <span className="font-mono">· {r.location} ({r.constituency})</span>
+                <span className="font-mono">
+                  · {r.location} ({r.constituency})
+                </span>
               </div>
               <a
                 href={r.requesterPhone ? `tel:${r.requesterPhone}` : undefined}
@@ -374,7 +451,12 @@ function DonorPage() {
               </a>
               <button
                 type="button"
-                onClick={() => setReportTarget({ role: "hospital", id: r.requesterPhone ?? r.requesterEmail ?? r.hospital })}
+                onClick={() =>
+                  setReportTarget({
+                    role: "hospital",
+                    id: r.requesterPhone ?? r.requesterEmail ?? r.hospital,
+                  })
+                }
                 className="w-full mt-2 inline-flex items-center justify-center gap-2 border border-border py-2 font-mono text-[10px] tracking-widest uppercase font-bold hover:bg-muted transition-colors"
               >
                 Report
@@ -417,11 +499,20 @@ function DonorPage() {
   );
 }
 
-function Row({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
+function Row({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: React.ElementType;
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex items-center justify-between py-1">
       <span className="flex items-center gap-2 text-muted-foreground">
-        <Icon className="size-3.5" /> <span className="font-mono text-[10px] tracking-widest uppercase">{label}</span>
+        <Icon className="size-3.5" />{" "}
+        <span className="font-mono text-[10px] tracking-widest uppercase">{label}</span>
       </span>
       <span>{children}</span>
     </div>
@@ -493,7 +584,9 @@ function ProfileEditor({
             </div>
             <select
               value={form.bloodGroup}
-              onChange={(event) => setForm({ ...form, bloodGroup: event.target.value as BloodGroup })}
+              onChange={(event) =>
+                setForm({ ...form, bloodGroup: event.target.value as BloodGroup })
+              }
               className="w-full border border-border bg-background px-3 py-2.5 font-mono text-sm outline-none focus:border-primary"
             >
               {BLOOD_GROUPS.map((group) => (
@@ -540,7 +633,10 @@ function ProfileEditor({
           </label>
         </div>
         <div className="flex justify-end gap-2 border-t border-border p-5">
-          <button onClick={onClose} className="border border-border px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-widest hover:bg-muted">
+          <button
+            onClick={onClose}
+            className="border border-border px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-widest hover:bg-muted"
+          >
             Cancel
           </button>
           <button
